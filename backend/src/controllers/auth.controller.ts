@@ -99,14 +99,47 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, avatar } = req.body;
+    const { name, avatar, currentPassword, newPassword } = req.body;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!existingUser) {
+      res.status(444).json({ message: 'Utilisateur non trouvé' });
+      return;
+    }
+
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (avatar !== undefined) updateData.avatar = avatar;
+
+    if (newPassword) {
+      if (!currentPassword) {
+        res.status(400).json({ message: 'Le mot de passe actuel est requis pour modifier le mot de passe' });
+        return;
+      }
+
+      const isValidPassword = await bcrypt.compare(currentPassword, existingUser.password);
+      if (!isValidPassword) {
+        res.status(400).json({ message: 'Mot de passe actuel incorrect' });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+        return;
+      }
+
+      updateData.password = await bcrypt.hash(newPassword, 12);
+    }
+
     const user = await prisma.user.update({
       where: { id: req.user!.id },
-      data: { ...(name && { name }), ...(avatar !== undefined && { avatar }) },
+      data: updateData,
       select: { id: true, name: true, email: true, role: true, avatar: true },
     });
+
     res.json(user);
   } catch (error) {
+    console.error('Update profile error:', error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
