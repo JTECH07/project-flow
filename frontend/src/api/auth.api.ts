@@ -10,6 +10,6 @@ export const authApi = {
 
   getMe: () => api.get<User>('/auth/me').then((r) => r.data),
 
-  updateProfile: (data: { name?: string; avatar?: string }) =>
+  updateProfile: (data: { name?: string; avatar?: string; currentPassword?: string; newPassword?: string }) =>
     api.put<User>('/auth/me', data).then((r) => r.data),
 };
