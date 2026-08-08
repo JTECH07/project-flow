@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FolderKanban, Loader2 } from 'lucide-react';
 import { authApi } from '../api/auth.api';
@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const Login: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
   
   const [isRegistering, setIsRegistering] = useState(false);
@@ -16,6 +17,12 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('mode') === 'register') {
+      setIsRegistering(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,31 +46,6 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('common.error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuickDemo = async () => {
-    try {
-      setLoading(true);
-      const demoEmail = 'demo@example.com';
-      const demoPassword = 'password123';
-      try {
-        const data = await authApi.login({ email: demoEmail, password: demoPassword });
-        setAuth(data.user, data.token);
-        toast.success('Connecté en tant que compte démo');
-        navigate('/');
-      } catch (err: any) {
-        if (err.response?.status === 401) {
-          const data = await authApi.register({ name: 'Utilisateur Démo', email: demoEmail, password: demoPassword });
-          setAuth(data.user, data.token);
-          toast.success('Compte démo créé avec succès');
-          navigate('/');
-        }
-      }
-    } catch (err: any) {
-      toast.error('Impossible de démarrer la session démo');
     } finally {
       setLoading(false);
     }
@@ -126,7 +108,7 @@ const Login: React.FC = () => {
           <button 
             type="submit" 
             className="btn btn-primary" 
-            style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }} 
+            style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', marginBottom: '1.25rem' }} 
             disabled={loading}
           >
             {loading ? (
@@ -138,18 +120,6 @@ const Login: React.FC = () => {
             )}
           </button>
         </form>
-
-        {!isRegistering && (
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ width: '100%', justifyContent: 'center', marginBottom: '1.25rem', fontSize: '13px' }}
-            onClick={handleQuickDemo}
-            disabled={loading}
-          >
-            🚀 Tester directement en 1 clic (Compte Démo)
-          </button>
-        )}
 
         <div style={{ textAlign: 'center', fontSize: '0.875rem' }}>
           <span className="text-muted">
@@ -170,7 +140,7 @@ const Login: React.FC = () => {
           </button>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '12px' }}>
           <Link to="/landing" className="text-muted hover:text-primary transition" style={{ textDecoration: 'underline' }}>
             ← Découvrir les fonctionnalités de ProjectFlow
           </Link>
