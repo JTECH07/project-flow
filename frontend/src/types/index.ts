@@ -4,6 +4,7 @@ export interface User {
   email: string;
   avatar?: string | null;
   role: 'ADMIN' | 'MEMBER';
+  createdAt?: string;
 }
 
 export interface ProjectMember {

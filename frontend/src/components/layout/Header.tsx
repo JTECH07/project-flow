@@ -61,11 +61,13 @@ const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
 
         {/* User info + logout */}
         <div className="header-user-container">
-          <div className="header-user-info">
-            <span className="text-sm font-bold truncate">{user?.name}</span>
-            <span className="text-xs text-muted truncate header-user-email">{user?.email}</span>
-          </div>
-          <Avatar user={user} size="md" />
+          <Link to="/profile" className="flex items-center gap-2" style={{ textDecoration: 'none', color: 'inherit' }} title="Mon Profil">
+            <div className="header-user-info">
+              <span className="text-sm font-bold truncate">{user?.name}</span>
+              <span className="text-xs text-muted truncate header-user-email">{user?.email}</span>
+            </div>
+            <Avatar user={user} size="md" />
+          </Link>
           <button
             className="btn btn-ghost btn-icon"
             onClick={handleLogout}

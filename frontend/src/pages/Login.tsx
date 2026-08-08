@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FolderKanban, Loader2 } from 'lucide-react';
 import { authApi } from '../api/auth.api';
@@ -13,8 +13,8 @@ const Login: React.FC = () => {
   
   const [isRegistering, setIsRegistering] = useState(false);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,25 +32,38 @@ const Login: React.FC = () => {
         toast.success(t('auth.registerTitle'));
         navigate('/');
       } else {
-        try {
-          const data = await authApi.login({ email, password });
-          setAuth(data.user, data.token);
-          toast.success(t('auth.loginTitle'));
-          navigate('/');
-        } catch (err: any) {
-          // Automatic demo account creation if login fails for demo@example.com
-          if (err.response?.status === 401 && email === 'demo@example.com') {
-            const data = await authApi.register({ name: 'Utilisateur Démo', email, password });
-            setAuth(data.user, data.token);
-            toast.success(t('auth.loginTitle'));
-            navigate('/');
-          } else {
-            toast.error(err.response?.data?.message || t('common.error'));
-          }
-        }
+        const data = await authApi.login({ email, password });
+        setAuth(data.user, data.token);
+        toast.success(t('auth.loginTitle'));
+        navigate('/');
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickDemo = async () => {
+    try {
+      setLoading(true);
+      const demoEmail = 'demo@example.com';
+      const demoPassword = 'password123';
+      try {
+        const data = await authApi.login({ email: demoEmail, password: demoPassword });
+        setAuth(data.user, data.token);
+        toast.success('Connecté en tant que compte démo');
+        navigate('/');
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          const data = await authApi.register({ name: 'Utilisateur Démo', email: demoEmail, password: demoPassword });
+          setAuth(data.user, data.token);
+          toast.success('Compte démo créé avec succès');
+          navigate('/');
+        }
+      }
+    } catch (err: any) {
+      toast.error('Impossible de démarrer la session démo');
     } finally {
       setLoading(false);
     }
@@ -113,7 +126,7 @@ const Login: React.FC = () => {
           <button 
             type="submit" 
             className="btn btn-primary" 
-            style={{ width: '100%', justifyContent: 'center', marginBottom: '1rem' }} 
+            style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }} 
             disabled={loading}
           >
             {loading ? (
@@ -126,6 +139,18 @@ const Login: React.FC = () => {
           </button>
         </form>
 
+        {!isRegistering && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ width: '100%', justifyContent: 'center', marginBottom: '1.25rem', fontSize: '13px' }}
+            onClick={handleQuickDemo}
+            disabled={loading}
+          >
+            🚀 Tester directement en 1 clic (Compte Démo)
+          </button>
+        )}
+
         <div style={{ textAlign: 'center', fontSize: '0.875rem' }}>
           <span className="text-muted">
             {isRegistering ? t('auth.hasAccount') : t('auth.noAccount')}{' '}
@@ -136,19 +161,19 @@ const Login: React.FC = () => {
             style={{ padding: '0 4px', display: 'inline', height: 'auto', minHeight: 'auto', color: 'var(--accent)', fontWeight: 'bold' }}
             onClick={() => {
               setIsRegistering(!isRegistering);
-              // Clean form values
               setName('');
-              if (email === 'demo@example.com' && !isRegistering) {
-                setEmail('');
-                setPassword('');
-              } else if (email === '' && isRegistering) {
-                setEmail('demo@example.com');
-                setPassword('password123');
-              }
+              setEmail('');
+              setPassword('');
             }}
           >
             {isRegistering ? t('auth.loginLink') : t('auth.registerLink')}
           </button>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px' }}>
+          <Link to="/landing" className="text-muted hover:text-primary transition" style={{ textDecoration: 'underline' }}>
+            ← Découvrir les fonctionnalités de ProjectFlow
+          </Link>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, FolderKanban, Bell, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Bell, Settings, LogOut, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
 
@@ -81,6 +81,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 {unreadCount}
               </span>
             )}
+          </NavLink>
+          <NavLink
+            to="/profile"
+            onClick={onClose}
+            className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+          >
+            <User size={18} />
+            Mon Profil
           </NavLink>
         </div>
 

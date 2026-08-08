@@ -9,6 +9,9 @@ import ProjectBoard from './pages/ProjectBoard';
 import ProjectSettings from './pages/ProjectSettings';
 import Notifications from './pages/Notifications';
 
+import Landing from './pages/Landing';
+import Profile from './pages/Profile';
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useAuthStore((state) => state.token);
   if (!token) return <Navigate to="/login" replace />;
@@ -19,6 +22,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/landing" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -27,6 +31,7 @@ const App: React.FC = () => {
           <Route path="projects/:id" element={<ProjectBoard />} />
           <Route path="projects/:id/settings" element={<ProjectSettings />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </BrowserRouter>

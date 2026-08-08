@@ -35,6 +35,7 @@ const Layout: React.FC = () => {
     if (location.pathname === '/') return t('nav.dashboard');
     if (location.pathname.startsWith('/projects')) return t('nav.projects');
     if (location.pathname.startsWith('/notifications')) return t('nav.notifications');
+    if (location.pathname === '/profile') return 'Mon Profil';
     return '';
   };
 
