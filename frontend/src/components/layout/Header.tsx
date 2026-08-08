@@ -1,12 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Globe, LogOut } from 'lucide-react';
+import { Bell, Globe, LogOut, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import Avatar from '../ui/Avatar';
 import { useNotificationStore } from '../../store/notificationStore';
 
-const Header: React.FC<{ title: string }> = ({ title }) => {
+interface HeaderProps {
+  title: string;
+  onToggleSidebar?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
   const { user, logout } = useAuthStore();
   const { i18n } = useTranslation();
   const { unreadCount } = useNotificationStore();
@@ -23,7 +28,20 @@ const Header: React.FC<{ title: string }> = ({ title }) => {
 
   return (
     <header className="header">
-      <div className="header-title">{title}</div>
+      <div className="header-left">
+        {onToggleSidebar && (
+          <button
+            className="btn btn-ghost btn-icon mobile-menu-btn"
+            onClick={onToggleSidebar}
+            title="Menu"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu size={22} />
+          </button>
+        )}
+        <div className="header-title">{title}</div>
+      </div>
+
       <div className="header-actions">
         {/* Changement de langue */}
         <button className="btn btn-ghost btn-icon" onClick={toggleLanguage} title="Changer de langue">
@@ -42,10 +60,10 @@ const Header: React.FC<{ title: string }> = ({ title }) => {
         </div>
 
         {/* User info + logout */}
-        <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-            <span className="text-sm font-bold">{user?.name}</span>
-            <span className="text-xs text-muted">{user?.email}</span>
+        <div className="header-user-container">
+          <div className="header-user-info">
+            <span className="text-sm font-bold truncate">{user?.name}</span>
+            <span className="text-xs text-muted truncate header-user-email">{user?.email}</span>
           </div>
           <Avatar user={user} size="md" />
           <button

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Sidebar from './Sidebar';
@@ -11,6 +11,12 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { setNotifications } = useNotificationStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Close mobile sidebar whenever route changes
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   // Globally fetch initial notifications to sync the header count immediately
   const { data: notifications = [] } = useQuery({
@@ -34,8 +40,11 @@ const Layout: React.FC = () => {
 
   return (
     <div className="app-layout">
-      <Sidebar />
-      <Header title={getPageTitle()} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Header
+        title={getPageTitle()}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+      />
       <main className="main-content">
         <div className="page-container">
           <Outlet />
