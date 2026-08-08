@@ -428,3 +428,24 @@ input, textarea, select { font-family: inherit; }
   .page-container { padding: 12px 8px; }
   .btn { padding: 8px 14px; font-size: 13px; }
 }
+
+/* ── Profile Page ── */
+.profile-header {
+  display: flex; align-items: center; gap: 20px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.profile-form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.avatar-presets-grid {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; align-items: center;
+}
+.avatar-preset-btn { transition: border-color 0.2s; }
+
+@media (max-width: 640px) {
+  .profile-form-grid { grid-template-columns: 1fr; }
+  .profile-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .avatar-presets-grid { gap: 8px; }
+}
+
