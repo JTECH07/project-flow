@@ -36,34 +36,34 @@ const Dashboard: React.FC = () => {
       <h1 className="text-xl font-bold mb-6">{t('dashboard.welcome')}, {user?.name} 👋</h1>
 
       {/* Stats Cards */}
-      <div className="dashboard-grid mb-8">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--accent)' }}>
-            <FolderKanban size={24} />
+      <div className="dashboard-grid mb-6" style={{ gap: '14px' }}>
+        <div className="stat-card" style={{ padding: '14px 18px' }}>
+          <div className="stat-icon" style={{ width: 42, height: 42, background: 'rgba(99,102,241,0.1)', color: 'var(--accent)' }}>
+            <FolderKanban size={22} />
           </div>
           <div>
-            <div className="stat-value">{stats?.projectsCount ?? 0}</div>
-            <div className="stat-label">{t('dashboard.totalProjects')}</div>
+            <div className="stat-value" style={{ fontSize: '22px' }}>{stats?.projectsCount ?? 0}</div>
+            <div className="stat-label" style={{ fontSize: '12px' }}>{t('dashboard.totalProjects')}</div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--success)' }}>
-            <CheckCircle2 size={24} />
+        <div className="stat-card" style={{ padding: '14px 18px' }}>
+          <div className="stat-icon" style={{ width: 42, height: 42, background: 'rgba(34,197,94,0.1)', color: 'var(--success)' }}>
+            <CheckCircle2 size={22} />
           </div>
           <div>
-            <div className="stat-value">{stats?.completedTasksCount ?? 0}</div>
-            <div className="stat-label">{t('dashboard.completedTasks')}</div>
+            <div className="stat-value" style={{ fontSize: '22px' }}>{stats?.completedTasksCount ?? 0}</div>
+            <div className="stat-label" style={{ fontSize: '12px' }}>{t('dashboard.completedTasks')}</div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)' }}>
-            <Clock size={24} />
+        <div className="stat-card" style={{ padding: '14px 18px' }}>
+          <div className="stat-icon" style={{ width: 42, height: 42, background: 'rgba(245,158,11,0.1)', color: 'var(--warning)' }}>
+            <Clock size={22} />
           </div>
           <div>
-            <div className="stat-value">{stats?.totalTasksCount ?? 0}</div>
-            <div className="stat-label">{t('dashboard.totalTasks')}</div>
+            <div className="stat-value" style={{ fontSize: '22px' }}>{stats?.totalTasksCount ?? 0}</div>
+            <div className="stat-label" style={{ fontSize: '12px' }}>{t('dashboard.totalTasks')}</div>
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
         {/* Left Side: Recent Projects */}
         <div className="card" style={{ height: 'fit-content' }}>
           <div className="flex-between mb-4">
-            <h2 className="font-bold">{t('dashboard.recentProjects')}</h2>
+            <h2 className="font-bold text-base">{t('dashboard.recentProjects')}</h2>
             <Link to="/projects" className="btn btn-ghost btn-sm">{t('common.search')}</Link>
           </div>
 
@@ -92,13 +92,13 @@ const Dashboard: React.FC = () => {
                   className="project-card"
                   style={{
                     '--project-color': project.color,
-                    padding: '1.25rem',
+                    padding: '1rem',
                     textDecoration: 'none',
                     display: 'block'
                   } as any}
                 >
-                  <h3 className="project-card-name" style={{ fontSize: '1rem', fontWeight: 600 }}>{project.name}</h3>
-                  <p className="project-card-desc" style={{ fontSize: '0.825rem', marginTop: '0.25rem' }}>
+                  <h3 className="project-card-name" style={{ fontSize: '0.95rem', fontWeight: 600 }}>{project.name}</h3>
+                  <p className="project-card-desc" style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
                     {project.description || 'Aucune description'}
                   </p>
                   <div className="project-card-footer mt-3 text-muted text-xs flex gap-3">
@@ -112,8 +112,8 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Right Side: My Tasks */}
-        <div className="card" style={{ height: 'fit-content' }}>
-          <h2 className="font-bold mb-4">{t('dashboard.myTasks')} ({assignedTasks.length})</h2>
+        <div className="card" style={{ height: 'fit-content', maxHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+          <h2 className="font-bold text-base mb-4">{t('dashboard.myTasks')} ({assignedTasks.length})</h2>
 
           {assignedTasks.length === 0 ? (
             <div className="empty-state" style={{ padding: '2rem 1rem' }}>
@@ -122,7 +122,7 @@ const Dashboard: React.FC = () => {
               <p className="empty-state-desc">Toutes vos tâches assignées sont terminées. Bon travail !</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" style={{ maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
               {assignedTasks.map((task: any) => {
                 const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
                 return (
@@ -131,15 +131,16 @@ const Dashboard: React.FC = () => {
                     key={task.id}
                     className="card"
                     style={{
-                      padding: '1rem',
+                      padding: '0.875rem',
                       textDecoration: 'none',
                       display: 'block',
                       background: 'var(--bg-secondary)',
                       border: '1px solid var(--border)',
                       transition: 'transform 0.2s ease, border-color 0.2s ease',
+                      flexShrink: 0,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                       e.currentTarget.style.borderColor = 'var(--accent)';
                     }}
                     onMouseLeave={(e) => {
@@ -167,7 +168,7 @@ const Dashboard: React.FC = () => {
                     <h4 className="font-semibold text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
                       {task.title}
                     </h4>
-                    <div className="flex items-center gap-4 text-xs text-muted">
+                    <div className="flex items-center gap-4 text-xs text-muted flex-wrap">
                       <span className="flex-center gap-1">
                         <Badge type="status" value={task.status} />
                       </span>
