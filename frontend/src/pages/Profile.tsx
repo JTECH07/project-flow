@@ -40,34 +40,69 @@ const Profile: React.FC = () => {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
 
+  // Helper: resize & compress image using HTML5 Canvas
+  const resizeAndCompressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 300;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Handle local image file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Security check: validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Veuillez sélectionner un fichier d\'image valide (PNG, JPG, WEBP, GIF)');
       return;
     }
 
-    // Security check: limit max size to 3MB
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error('L\'image est trop lourde. La taille maximale autorisée est de 3 Mo');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      setCustomAvatar(base64String);
+    try {
+      const compressedDataUrl = await resizeAndCompressImage(file);
+      setCustomAvatar(compressedDataUrl);
       setUploadedFileName(file.name);
-      toast.success(`Image "${file.name}" chargée avec succès !`);
-    };
-    reader.onerror = () => {
-      toast.error('Erreur lors de la lecture du fichier');
-    };
-    reader.readAsDataURL(file);
+      toast.success(`Image "${file.name}" optimisée avec succès !`);
+    } catch {
+      toast.error('Erreur lors de la lecture de l\'image');
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -81,7 +116,7 @@ const Profile: React.FC = () => {
       const finalAvatar = customAvatar.trim() || avatar;
       const updatedUser = await authApi.updateProfile({ name: name.trim(), avatar: finalAvatar });
       updateUser(updatedUser);
-      toast.success('Profil mis à jour avec succès !');
+      toast.success(t('profile.successUpdated'));
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('common.error'));
     } finally {
@@ -92,17 +127,17 @@ const Profile: React.FC = () => {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      toast.error('Le nouveau mot de passe doit contenir au moins 6 caractères');
+      toast.error(t('profile.passwordMinChars'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
+      toast.error(t('profile.passwordMismatch'));
       return;
     }
     try {
       setSavingPwd(true);
-      await authApi.updateProfile({ currentPassword, newPassword });
-      toast.success('Mot de passe modifié avec succès !');
+      await authApi.updateProfile({ currentPassword: currentPassword.trim(), newPassword: newPassword.trim() });
+      toast.success(t('profile.successPwdUpdated'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -119,8 +154,8 @@ const Profile: React.FC = () => {
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
       <div className="mb-6">
-        <h1 className="text-xl font-bold">Mon Profil</h1>
-        <p className="text-muted text-sm">Gérez vos informations personnelles, avatar et sécurité</p>
+        <h1 className="text-xl font-bold">{t('profile.title')}</h1>
+        <p className="text-muted text-sm">{t('profile.subtitle')}</p>
       </div>
 
       {/* ── Profile Card ── */}
@@ -134,7 +169,7 @@ const Profile: React.FC = () => {
               <p className="text-sm text-muted truncate">{user?.email}</p>
               <span className="badge badge-inprogress" style={{ marginTop: '8px', display: 'inline-flex', gap: '4px' }}>
                 <Shield size={11} />
-                {user?.role === 'ADMIN' ? 'Administrateur' : 'Membre'}
+                {user?.role === 'ADMIN' ? t('profile.adminRole') : t('profile.memberRole')}
               </span>
             </div>
           </div>
@@ -145,7 +180,7 @@ const Profile: React.FC = () => {
             {/* Name field */}
             <div className="input-group">
               <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <User size={14} /> Nom complet
+                <User size={14} /> {t('profile.fullName')}
               </label>
               <input
                 type="text"
@@ -160,7 +195,7 @@ const Profile: React.FC = () => {
             {/* Email (readonly) */}
             <div className="input-group">
               <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail size={14} /> Adresse email <span className="text-muted" style={{ fontSize: '11px' }}>(non modifiable)</span>
+                <Mail size={14} /> {t('profile.emailReadonly')}
               </label>
               <input
                 type="email"
@@ -175,7 +210,7 @@ const Profile: React.FC = () => {
           {/* Local File Upload Section */}
           <div className="input-group" style={{ marginTop: '20px' }}>
             <label className="input-label flex items-center gap-2">
-              <Upload size={15} /> Photo de profil depuis votre appareil
+              <Upload size={15} /> {t('profile.uploadPhoto')}
             </label>
             <input
               type="file"
@@ -191,7 +226,7 @@ const Profile: React.FC = () => {
                 onClick={() => fileInputRef.current?.click()}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
               >
-                <ImageIcon size={16} /> Importer un fichier d'image...
+                <ImageIcon size={16} /> {t('profile.importImageBtn')}
               </button>
               {uploadedFileName && (
                 <span className="text-xs text-success flex items-center gap-1 font-semibold">
@@ -200,13 +235,13 @@ const Profile: React.FC = () => {
               )}
             </div>
             <span className="text-xs text-muted mt-1 display-block">
-              Formats acceptés : PNG, JPG, WEBP, GIF (Max 3 Mo)
+              {t('profile.allowedFormats')}
             </span>
           </div>
 
           {/* Avatar presets */}
           <div className="input-group" style={{ marginTop: '20px' }}>
-            <label className="input-label">Ou choisir un avatar illustré prédéfini</label>
+            <label className="input-label">{t('profile.choosePreset')}</label>
             <div className="avatar-presets-grid">
               {/* "Initials" option */}
               <button
@@ -257,7 +292,7 @@ const Profile: React.FC = () => {
 
           {/* Custom URL */}
           <div className="input-group" style={{ marginTop: '16px' }}>
-            <label className="input-label">Ou coller l'URL d'une image distante</label>
+            <label className="input-label">{t('profile.pasteUrl')}</label>
             <input
               type="url"
               className="input"
@@ -270,8 +305,8 @@ const Profile: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving
-                ? <><Loader2 size={15} className="animate-spin" /> Enregistrement…</>
-                : <><Save size={15} /> Enregistrer le profil</>
+                ? <><Loader2 size={15} className="animate-spin" /> {t('profile.saving')}</>
+                : <><Save size={15} /> {t('profile.saveProfile')}</>
               }
             </button>
           </div>
@@ -291,8 +326,8 @@ const Profile: React.FC = () => {
               <Lock size={18} />
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div className="font-bold" style={{ fontSize: '14px' }}>Modifier le mot de passe</div>
-              <div className="text-muted text-xs">Changez votre mot de passe de connexion</div>
+              <div className="font-bold" style={{ fontSize: '14px' }}>{t('profile.changePassword')}</div>
+              <div className="text-muted text-xs">{t('profile.changePasswordSubtitle')}</div>
             </div>
           </div>
           {showPasswordSection ? <ChevronUp size={18} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={18} style={{ color: 'var(--text-muted)' }} />}
@@ -303,14 +338,14 @@ const Profile: React.FC = () => {
             <div className="flex flex-col gap-4">
               {/* Current Password */}
               <div className="input-group">
-                <label className="input-label">Mot de passe actuel</label>
+                <label className="input-label">{t('profile.currentPassword')}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showCurrentPwd ? 'text' : 'password'}
                     className="input"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Votre mot de passe actuel"
+                    placeholder={t('profile.currentPassword')}
                     required
                     style={{ paddingRight: '44px' }}
                   />
@@ -326,14 +361,14 @@ const Profile: React.FC = () => {
 
               {/* New Password */}
               <div className="input-group">
-                <label className="input-label">Nouveau mot de passe</label>
+                <label className="input-label">{t('profile.newPassword')}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showNewPwd ? 'text' : 'password'}
                     className="input"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Minimum 6 caractères"
+                    placeholder={t('profile.passwordMinChars')}
                     required
                     style={{ paddingRight: '44px' }}
                   />
@@ -349,14 +384,14 @@ const Profile: React.FC = () => {
 
               {/* Confirm Password */}
               <div className="input-group">
-                <label className="input-label">Confirmer le nouveau mot de passe</label>
+                <label className="input-label">{t('profile.confirmPassword')}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showConfirmPwd ? 'text' : 'password'}
                     className="input"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Répétez le nouveau mot de passe"
+                    placeholder={t('profile.confirmPassword')}
                     required
                     style={{
                       paddingRight: '44px',
@@ -372,7 +407,7 @@ const Profile: React.FC = () => {
                   </button>
                 </div>
                 {confirmPassword && newPassword !== confirmPassword && (
-                  <span style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '4px' }}>Les mots de passe ne correspondent pas</span>
+                  <span style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '4px' }}>{t('profile.passwordMismatch')}</span>
                 )}
               </div>
             </div>
@@ -383,7 +418,7 @@ const Profile: React.FC = () => {
                 className="btn btn-ghost"
                 onClick={() => { setShowPasswordSection(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }}
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -391,8 +426,8 @@ const Profile: React.FC = () => {
                 disabled={savingPwd || (!!confirmPassword && newPassword !== confirmPassword)}
               >
                 {savingPwd
-                  ? <><Loader2 size={15} className="animate-spin" /> Modification…</>
-                  : <><Lock size={15} /> Modifier le mot de passe</>
+                  ? <><Loader2 size={15} className="animate-spin" /> {t('profile.saving')}</>
+                  : <><Lock size={15} /> {t('profile.changePassword')}</>
                 }
               </button>
             </div>
@@ -402,15 +437,15 @@ const Profile: React.FC = () => {
 
       {/* ── Account Info Card ── */}
       <div className="card">
-        <h3 className="font-bold text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>Informations du compte</h3>
+        <h3 className="font-bold text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{t('profile.accountInfo')}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
           <Calendar size={14} />
           <span>
-            Membre depuis le{' '}
-            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Récemment'}
+            {t('profile.memberSince')}{' '}
+            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString(t('common.confirm') === 'Confirm' ? 'en-US' : 'fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Récemment'}
           </span>
           <span style={{ color: 'var(--border-light)' }}>•</span>
-          <span>Rôle : <strong>{user?.role === 'ADMIN' ? 'Administrateur' : 'Membre'}</strong></span>
+          <span>{t('profile.role')} : <strong>{user?.role === 'ADMIN' ? t('profile.adminRole') : t('profile.memberRole')}</strong></span>
         </div>
       </div>
     </div>
