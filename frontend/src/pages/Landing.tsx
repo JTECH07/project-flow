@@ -7,20 +7,20 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
-const STATS = [
-  { value: '500+', label: 'Utilisateurs actifs', icon: Users, color: 'var(--accent)' },
-  { value: '1 200+', label: 'Projets créés', icon: FolderKanban, color: 'var(--success)' },
-  { value: '8 400+', label: 'Tâches complétées', icon: CheckCircle2, color: 'var(--warning)' },
-  { value: '< 50ms', label: 'Latence temps réel', icon: Zap, color: '#a855f7' },
-];
-
 const Landing: React.FC = () => {
   const { token } = useAuthStore();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language.startsWith('fr') ? 'en' : 'fr');
   };
+
+  const STATS = [
+    { value: '500+', label: t('landing.statUsers'), icon: Users, color: 'var(--accent)' },
+    { value: '1 200+', label: t('landing.statProjects'), icon: FolderKanban, color: 'var(--success)' },
+    { value: '8 400+', label: t('landing.statTasks'), icon: CheckCircle2, color: 'var(--warning)' },
+    { value: '< 50ms', label: t('landing.statLatency'), icon: Zap, color: '#a855f7' },
+  ];
 
   return (
     <div style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -45,7 +45,7 @@ const Landing: React.FC = () => {
             onClick={toggleLanguage}
             className="btn btn-ghost btn-sm"
             style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-            title="Changer de langue"
+            title="Switch Language / Changer de langue"
           >
             <Globe size={15} />
             <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
@@ -55,15 +55,15 @@ const Landing: React.FC = () => {
 
           {token ? (
             <Link to="/" className="btn btn-primary btn-sm">
-              Mon espace <ArrowRight size={14} />
+              {t('landing.mySpace')} <ArrowRight size={14} />
             </Link>
           ) : (
             <>
               <Link to="/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--text-primary)' }}>
-                Se connecter
+                {t('auth.login')}
               </Link>
               <Link to="/login?mode=register" className="btn btn-primary btn-sm">
-                S'inscrire <ArrowRight size={14} />
+                {t('auth.register')} <ArrowRight size={14} />
               </Link>
             </>
           )}
@@ -87,7 +87,7 @@ const Landing: React.FC = () => {
             gap: '6px', marginBottom: '24px',
           }}>
             <Sparkles size={13} style={{ color: 'var(--accent)' }} />
-            Plateforme Collaborative Nouvelle Génération
+            {t('landing.badge')}
           </div>
 
           <h1 style={{
@@ -96,20 +96,19 @@ const Landing: React.FC = () => {
             background: 'linear-gradient(135deg,#ffffff 40%,#a5b4fc 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>
-            Pilotez vos projets en équipe,<br />en temps réel et sans friction.
+            {t('landing.heroTitle')}
           </h1>
 
           <p style={{ fontSize: '16px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 36px', lineHeight: 1.65 }}>
-            Tableau Kanban interactif, collaboration WebSocket instantanée,
-            gestion des rôles et notifications en temps réel — tout ce dont votre équipe a besoin.
+            {t('landing.heroSubtitle')}
           </p>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/login?mode=register" className="btn btn-primary" style={{ padding: '11px 24px', fontSize: '15px' }}>
-              Démarrer gratuitement <ArrowRight size={16} />
+              {t('landing.getStarted')} <ArrowRight size={16} />
             </Link>
             <a href="#features" className="btn btn-secondary" style={{ padding: '11px 24px', fontSize: '15px' }}>
-              Voir les fonctionnalités
+              {t('landing.viewFeatures')}
             </a>
           </div>
         </div>
@@ -148,16 +147,16 @@ const Landing: React.FC = () => {
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ef4444' }} />
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b' }} />
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#22c55e' }} />
-              <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>Tableau Kanban — ProjectFlow</span>
+              <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>{t('landing.kanbanTitle')}</span>
             </div>
-            <span className="badge badge-done" style={{ fontSize: '11px' }}>⚡ WebSocket actif</span>
+            <span className="badge badge-done" style={{ fontSize: '11px' }}>{t('landing.websocketActive')}</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             {/* To Do column */}
             <div className="card" style={{ background: 'var(--bg-card)', padding: '12px' }}>
               <div className="flex-between mb-2">
-                <span className="font-bold text-xs">📌 À faire</span>
+                <span className="font-bold text-xs">📌 {t('tasks.statusTodo')}</span>
                 <span className="badge badge-todo" style={{ fontSize: '10px' }}>2</span>
               </div>
               <div className="card mb-2" style={{ padding: '9px 11px', background: 'var(--bg-secondary)', borderLeft: '3px solid var(--accent)' }}>
@@ -173,7 +172,7 @@ const Landing: React.FC = () => {
             {/* In Progress column */}
             <div className="card" style={{ background: 'var(--bg-card)', padding: '12px' }}>
               <div className="flex-between mb-2">
-                <span className="font-bold text-xs">🔥 En cours</span>
+                <span className="font-bold text-xs">🔥 {t('tasks.statusInProgress')}</span>
                 <span className="badge badge-inprogress" style={{ fontSize: '10px' }}>1</span>
               </div>
               <div className="card" style={{ padding: '9px 11px', background: 'var(--bg-secondary)', borderLeft: '3px solid var(--warning)' }}>
@@ -185,7 +184,7 @@ const Landing: React.FC = () => {
             {/* Done column */}
             <div className="card" style={{ background: 'var(--bg-card)', padding: '12px' }}>
               <div className="flex-between mb-2">
-                <span className="font-bold text-xs">✅ Terminé</span>
+                <span className="font-bold text-xs">✅ {t('tasks.statusDone')}</span>
                 <span className="badge badge-done" style={{ fontSize: '10px' }}>3</span>
               </div>
               <div className="card mb-2" style={{ padding: '9px 11px', background: 'var(--bg-secondary)', borderLeft: '3px solid var(--success)' }}>
@@ -200,20 +199,20 @@ const Landing: React.FC = () => {
       {/* ── Features Grid ── */}
       <section id="features" style={{ maxWidth: '960px', margin: '0 auto 90px', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '10px' }}>Tout ce dont votre équipe a besoin</h2>
-          <p className="text-muted" style={{ fontSize: '14px' }}>Des fonctionnalités pensées pour la productivité et la clarté.</p>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '10px' }}>{t('landing.featuresTitle')}</h2>
+          <p className="text-muted" style={{ fontSize: '14px' }}>{t('landing.featuresSubtitle')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '18px' }}>
           {[
-            { icon: Layout, color: 'var(--accent)', bg: 'rgba(99,102,241,0.12)', title: 'Tableau Kanban', desc: 'Glissez-déposez vos tâches entre colonnes et suivez vos sprints en temps réel.' },
-            { icon: Zap, color: 'var(--success)', bg: 'rgba(34,197,94,0.12)', title: 'WebSockets Instantanés', desc: 'Chaque modification s\'affiche immédiatement chez tous vos coéquipiers sans rechargement.' },
-            { icon: Users, color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)', title: 'Gestion des Membres', desc: 'Invitez des collaborateurs par email et assignez-leur des tâches spécifiques.' },
-            { icon: Bell, color: 'var(--danger)', bg: 'rgba(239,68,68,0.12)', title: 'Notifications Temps Réel', desc: 'Alertes instantanées pour assignations, commentaires et mises à jour de tâches.' },
-            { icon: MessageSquare, color: 'var(--info)', bg: 'rgba(59,130,246,0.12)', title: 'Commentaires Intégrés', desc: 'Discussions directement sur chaque tâche pour garder le contexte au bon endroit.' },
-            { icon: Globe, color: 'var(--info)', bg: 'rgba(59,130,246,0.12)', title: 'Interface Bilingue', desc: 'Basculez entre Français et Anglais en un clic pour vos équipes internationales.' },
-            { icon: Clock, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', title: 'Priorités & Échéances', desc: 'Niveau de priorité, dates d\'échéance et indicateurs visuels de retard sur chaque tâche.' },
-            { icon: ShieldCheck, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', title: 'Cloud Sécurisé', desc: 'PostgreSQL + Prisma ORM, JWT sécurisé, hébergé sur Railway et Vercel.' },
+            { icon: Layout, color: 'var(--accent)', bg: 'rgba(99,102,241,0.12)', title: t('landing.featKanbanTitle'), desc: t('landing.featKanbanDesc') },
+            { icon: Zap, color: 'var(--success)', bg: 'rgba(34,197,94,0.12)', title: t('landing.featWsTitle'), desc: t('landing.featWsDesc') },
+            { icon: Users, color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)', title: t('landing.featMembersTitle'), desc: t('landing.featMembersDesc') },
+            { icon: Bell, color: 'var(--danger)', bg: 'rgba(239,68,68,0.12)', title: t('landing.featNotifsTitle'), desc: t('landing.featNotifsDesc') },
+            { icon: MessageSquare, color: 'var(--info)', bg: 'rgba(59,130,246,0.12)', title: t('landing.featCommentsTitle'), desc: t('landing.featCommentsDesc') },
+            { icon: Globe, color: 'var(--info)', bg: 'rgba(59,130,246,0.12)', title: t('landing.featI18nTitle'), desc: t('landing.featI18nDesc') },
+            { icon: Clock, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', title: t('landing.featPriorityTitle'), desc: t('landing.featPriorityDesc') },
+            { icon: ShieldCheck, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', title: t('landing.featSecurityTitle'), desc: t('landing.featSecurityDesc') },
           ].map(({ icon: Icon, color, bg, title, desc }) => (
             <div key={title} className="card" style={{ padding: '20px' }}>
               <div style={{ width: 40, height: 40, borderRadius: '10px', background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', flexShrink: 0 }}>
@@ -234,13 +233,13 @@ const Landing: React.FC = () => {
           border: '1px solid var(--accent)', borderRadius: 'var(--radius-xl)',
         }}>
           <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px' }}>
-            Prêt à booster la collaboration de votre équipe ?
+            {t('landing.ctaTitle')}
           </h2>
           <p className="text-muted" style={{ fontSize: '14px', maxWidth: '440px', margin: '0 auto 26px', lineHeight: 1.6 }}>
-            Créez votre compte en moins de 30 secondes et commencez à organiser vos projets dès aujourd'hui.
+            {t('landing.ctaSubtitle')}
           </p>
           <Link to="/login?mode=register" className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '14px' }}>
-            Rejoindre ProjectFlow gratuitement <ArrowRight size={16} />
+            {t('landing.joinFree')} <ArrowRight size={16} />
           </Link>
         </div>
       </section>
