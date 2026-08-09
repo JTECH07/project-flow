@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api/auth.api';
 import Avatar from '../components/ui/Avatar';
-import { User, Mail, Shield, Calendar, Save, Loader2, Lock, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Mail, Shield, Calendar, Save, Loader2, Lock, Eye, EyeOff, ChevronDown, ChevronUp, Upload, Image as ImageIcon, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-/* DiceBear cartoon/illustrated/nature/abstract avatars — no real people */
+/* DiceBear cartoon/illustrated/nature/abstract avatars */
 const AVATAR_PRESETS = [
   { url: 'https://api.dicebear.com/8.x/adventurer/svg?seed=Abby&backgroundColor=b6e3f4,c0aede', label: 'Aventurière' },
   { url: 'https://api.dicebear.com/8.x/adventurer/svg?seed=Liam&backgroundColor=ffdfbf,ffd5dc', label: 'Aventurier' },
@@ -21,11 +21,13 @@ const AVATAR_PRESETS = [
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const { user, updateUser } = useAuthStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile info state
   const [name, setName] = useState(user?.name || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [customAvatar, setCustomAvatar] = useState('');
+  const [uploadedFileName, setUploadedFileName] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Password change state
@@ -37,6 +39,36 @@ const Profile: React.FC = () => {
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
+
+  // Handle local image file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Security check: validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner un fichier d\'image valide (PNG, JPG, WEBP, GIF)');
+      return;
+    }
+
+    // Security check: limit max size to 3MB
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('L\'image est trop lourde. La taille maximale autorisée est de 3 Mo');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      setCustomAvatar(base64String);
+      setUploadedFileName(file.name);
+      toast.success(`Image "${file.name}" chargée avec succès !`);
+    };
+    reader.onerror = () => {
+      toast.error('Erreur lors de la lecture du fichier');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,14 +172,46 @@ const Profile: React.FC = () => {
             </div>
           </div>
 
+          {/* Local File Upload Section */}
+          <div className="input-group" style={{ marginTop: '20px' }}>
+            <label className="input-label flex items-center gap-2">
+              <Upload size={15} /> Photo de profil depuis votre appareil
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+            />
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => fileInputRef.current?.click()}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+              >
+                <ImageIcon size={16} /> Importer un fichier d'image...
+              </button>
+              {uploadedFileName && (
+                <span className="text-xs text-success flex items-center gap-1 font-semibold">
+                  <Check size={14} /> {uploadedFileName}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-muted mt-1 display-block">
+              Formats acceptés : PNG, JPG, WEBP, GIF (Max 3 Mo)
+            </span>
+          </div>
+
           {/* Avatar presets */}
           <div className="input-group" style={{ marginTop: '20px' }}>
-            <label className="input-label">Choisir un avatar illustré</label>
+            <label className="input-label">Ou choisir un avatar illustré prédéfini</label>
             <div className="avatar-presets-grid">
               {/* "Initials" option */}
               <button
                 type="button"
-                onClick={() => { setAvatar(''); setCustomAvatar(''); }}
+                onClick={() => { setAvatar(''); setCustomAvatar(''); setUploadedFileName(''); }}
                 className="avatar-preset-btn"
                 style={{
                   border: !avatar && !customAvatar ? '2px solid var(--accent)' : '2px solid var(--border)',
@@ -169,7 +233,7 @@ const Profile: React.FC = () => {
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => { setAvatar(preset.url); setCustomAvatar(''); }}
+                  onClick={() => { setAvatar(preset.url); setCustomAvatar(''); setUploadedFileName(''); }}
                   title={preset.label}
                   style={{
                     border: avatar === preset.url && !customAvatar ? '2px solid var(--accent)' : '2px solid var(--border)',
@@ -193,12 +257,12 @@ const Profile: React.FC = () => {
 
           {/* Custom URL */}
           <div className="input-group" style={{ marginTop: '16px' }}>
-            <label className="input-label">Ou coller l'URL d'une image personnalisée</label>
+            <label className="input-label">Ou coller l'URL d'une image distante</label>
             <input
               type="url"
               className="input"
               value={customAvatar}
-              onChange={(e) => setCustomAvatar(e.target.value)}
+              onChange={(e) => { setCustomAvatar(e.target.value); setUploadedFileName(''); }}
               placeholder="https://exemple.com/mon-avatar.png"
             />
           </div>
