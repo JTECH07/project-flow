@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Globe, LogOut, Menu } from 'lucide-react';
+import { Bell, Globe, LogOut, Menu, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import Avatar from '../ui/Avatar';
@@ -13,7 +13,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
   const { user, logout } = useAuthStore();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
 
@@ -43,8 +43,19 @@ const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
       </div>
 
       <div className="header-actions">
+        {/* Link to Landing showcase page */}
+        <Link
+          to="/landing"
+          className="btn btn-ghost btn-sm"
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', fontSize: '13px' }}
+          title={t('dashboard.discoverLanding')}
+        >
+          <Sparkles size={16} />
+          <span className="hidden-mobile">{t('nav.landing')}</span>
+        </Link>
+
         {/* Changement de langue */}
-        <button className="btn btn-ghost btn-icon" onClick={toggleLanguage} title="Changer de langue">
+        <button className="btn btn-ghost btn-icon" onClick={toggleLanguage} title="Switch language / Changer de langue">
           <Globe size={18} />
           <span className="text-xs font-bold" style={{ textTransform: 'uppercase' }}>
             {i18n.language.substring(0, 2)}
@@ -53,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
 
         {/* Cloche notifications */}
         <div className="notif-bell">
-          <Link to="/notifications" className="btn btn-ghost btn-icon" title="Notifications">
+          <Link to="/notifications" className="btn btn-ghost btn-icon" title={t('nav.notifications')}>
             <Bell size={18} />
             {unreadCount > 0 && <div className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</div>}
           </Link>
@@ -61,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
 
         {/* User info + logout */}
         <div className="header-user-container">
-          <Link to="/profile" className="flex items-center gap-2" style={{ textDecoration: 'none', color: 'inherit' }} title="Mon Profil">
+          <Link to="/profile" className="flex items-center gap-2" style={{ textDecoration: 'none', color: 'inherit' }} title={t('nav.profile')}>
             <div className="header-user-info">
               <span className="text-sm font-bold truncate">{user?.name}</span>
               <span className="text-xs text-muted truncate header-user-email">{user?.email}</span>
@@ -71,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
           <button
             className="btn btn-ghost btn-icon"
             onClick={handleLogout}
-            title="Se déconnecter"
+            title={t('auth.logout')}
             style={{ color: 'var(--text-muted)' }}
           >
             <LogOut size={16} />

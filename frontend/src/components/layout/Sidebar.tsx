@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, FolderKanban, Bell, Settings, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Bell, LogOut, User, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
 
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="sidebar-section mt-4">
-          <div className="sidebar-section-title">Menu principal</div>
+          <div className="sidebar-section-title">{t('nav.dashboard')}</div>
           <NavLink
             to="/"
             onClick={onClose}
@@ -88,7 +88,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
           >
             <User size={18} />
-            Mon Profil
+            {t('nav.profile')}
+          </NavLink>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '14px 0' }} />
+
+          {/* Landing page link */}
+          <NavLink
+            to="/landing"
+            onClick={onClose}
+            className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+            style={{ color: 'var(--accent)' }}
+          >
+            <Sparkles size={18} />
+            {t('nav.landing')}
           </NavLink>
         </div>
 
