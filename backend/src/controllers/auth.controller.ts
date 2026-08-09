@@ -6,8 +6,8 @@ import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  email: z.string().email('Email invalide'),
+  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100),
+  email: z.string().email('Email invalide').max(255),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
@@ -16,9 +16,19 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Mot de passe requis'),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100).optional(),
+  avatar: z.string().nullable().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, 'Le nouveau mot de passe doit contenir au moins 6 caractères').optional(),
+});
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password } = registerSchema.parse(req.body);
+    const parsed = registerSchema.parse(req.body);
+    const email = parsed.email.toLowerCase().trim();
+    const name = parsed.name.trim();
+    const password = parsed.password;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -41,7 +51,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({ user, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ message: 'Données invalides', errors: error.errors });
+      res.status(400).json({ message: error.errors[0]?.message || 'Données invalides', errors: error.errors });
       return;
     }
     console.error('Register error:', error);
@@ -51,7 +61,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const parsed = loginSchema.parse(req.body);
+    const email = parsed.email.toLowerCase().trim();
+    const password = parsed.password;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -77,7 +89,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ message: 'Données invalides', errors: error.errors });
+      res.status(400).json({ message: error.errors[0]?.message || 'Données invalides', errors: error.errors });
       return;
     }
     console.error('Login error:', error);
@@ -91,6 +103,10 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       where: { id: req.user!.id },
       select: { id: true, name: true, email: true, role: true, avatar: true, createdAt: true },
     });
+    if (!user) {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return;
+    }
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
@@ -99,16 +115,17 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, avatar, currentPassword, newPassword } = req.body;
+    const parsed = updateProfileSchema.parse(req.body);
+    const { name, avatar, currentPassword, newPassword } = parsed;
 
     const existingUser = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!existingUser) {
-      res.status(444).json({ message: 'Utilisateur non trouvé' });
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
       return;
     }
 
     const updateData: any = {};
-    if (name) updateData.name = name;
+    if (name) updateData.name = name.trim();
     if (avatar !== undefined) updateData.avatar = avatar;
 
     if (newPassword) {
@@ -123,11 +140,6 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         return;
       }
 
-      if (newPassword.length < 6) {
-        res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
-        return;
-      }
-
       updateData.password = await bcrypt.hash(newPassword, 12);
     }
 
@@ -139,6 +151,10 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json(user);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0]?.message || 'Données invalides', errors: error.errors });
+      return;
+    }
     console.error('Update profile error:', error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
