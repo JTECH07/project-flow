@@ -59,4 +59,4 @@ ProjectFlow est une plateforme complète et moderne de gestion de projets basée
 
 ## 📝 Auteur
 
-Joseph Alaye (jamstech07@gmail.com)
+$JAMS (jamstech07@gmail.com)
